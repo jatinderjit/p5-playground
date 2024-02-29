@@ -1,30 +1,51 @@
+// term return the ith term for the series
+const series = {
+  // 4 * [sin(t)/pi, sin(3t)/(3pi), sin(5t)/(5pi), ...]
+  square: {
+    label: "Square Wave",
+    term: (i) => term(2 / (i * 2 - 1), i * 2 - 1),
+    default: true,
+  },
+
+  // 2 * [sin(t)/(-pi), sin(2t)/(2pi), sin(3t)/(-3pi), ...]
+  sawtooth: {
+    label: "Sawtooth",
+    term: (i) => term(1 / (i * Math.pow(-1, i)), i),
+  },
+};
+
+const baseRadius = 100;
+
 let time = 0;
 let wave = [];
-const radius = 50;
 let slider;
+let radio;
+
+const term = (r, phase) => ({ radius: (baseRadius / PI) * r, phase });
+
+// array from [1..n] (both inclusive)
+const array = (n) => Array.apply(null, Array(n)).map((_, i) => i + 1);
 
 function setup() {
   createCanvas(600, 400);
-  slider = createSlider(1, 100, 4, 1);
-}
 
-function getSquareWave(n) {
-  // 4 * sin(t)/pi, 4 * sin(3t)/(3pi), 4 * sin(5t)/(5pi), ...
-  return Array.apply(null, Array(n)).map(
-    (_, i) => i * 2  + 1
-  ).map(i => ({
-    radius: 4 * radius / (i * PI),
-    phase: i,
-  }));
+  radio = createRadio();
+  Object.entries(series).forEach(([code, s]) => radio.option(code, s.label));
+  radio.selected(Object.entries(series).filter(([c, s]) => s.default)[0][0]);
+
+  slider = createSlider(1, 100, 3, 1);
+  slider.size(400);
 }
 
 function getSeries() {
-  return getSquareWave(slider.value());  
+  const s = series[radio.selected().value];
+  const n = slider.value();
+  return array(n).map((i) => s.term(i));
 }
 
 function draw() {
   const series = getSeries();
-  
+
   background(0);
   translate(200, 200);
 
@@ -32,22 +53,22 @@ function draw() {
   noFill();
   const [x, y] = drawCircles(series, 0, 0, 0);
   drawWave(x, y);
- 
+
   time -= 0.1;
 }
 
 function drawCircles(series, x0, y0, i) {
-  if(i >= series.length) return [0, 0];
-  
-  const {radius, phase} = series[i];
-  
+  if (i >= series.length) return [0, 0];
+
+  const { radius, phase } = series[i];
+
   push();
   translate(x0, y0);
   const x = radius * cos(phase * time);
   const y = radius * sin(phase * time);
   circle(0, 0, radius * 2);
   line(0, 0, x, y);
-  
+
   const ret = drawCircles(series, x, y, i + 1);
   pop();
 
@@ -55,7 +76,7 @@ function drawCircles(series, x0, y0, i) {
 }
 
 function drawWave(x, y) {
-  let offset = radius * 3;
+  let offset = baseRadius;
   wave.unshift(y);
   if (wave.length >= 300) wave.pop();
 
