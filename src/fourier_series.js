@@ -18,8 +18,8 @@ const baseRadius = 100;
 
 let time = 0;
 let wave = [];
-let slider;
-let radio;
+let numTerms;
+let waveType;
 
 const term = (r, phase) => ({ radius: (baseRadius / PI) * r, phase });
 
@@ -29,17 +29,17 @@ const array = (n) => Array.apply(null, Array(n)).map((_, i) => i + 1);
 function setup() {
   createCanvas(600, 400);
 
-  radio = createRadio();
-  Object.entries(series).forEach(([code, s]) => radio.option(code, s.label));
-  radio.selected(Object.entries(series).filter(([c, s]) => s.default)[0][0]);
+  waveType = createSelect();
+  Object.entries(series).forEach(([code, s]) => waveType.option(s.label, code));
+  waveType.selected(Object.entries(series).filter(([c, s]) => s.default)[0][0]);
 
-  slider = createSlider(1, 100, 3, 1);
-  slider.size(400);
+  numTerms = createSlider(1, 100, 3, 1);
+  numTerms.size(400);
 }
 
 function getSeries() {
-  const s = series[radio.selected().value];
-  const n = slider.value();
+  const s = series[waveType.value()];
+  const n = numTerms.value();
   return array(n).map((i) => s.term(i));
 }
 
